@@ -1,34 +1,74 @@
 import {Observable as O} from 'rxjs'
-import DiffPatchMap from './diffPatchMap'
-import fromEvent from './fromevent'
-
+import * as jsondiffpatch from 'jsondiffpatch'
 import rxjsSA from '@cycle/rxjs-adapter'
 
 const g_unanchoredLedger = {}
-//const g_anchoredLedger = {}
 
-function diffAndPatch(descriptor, accessToken) {
+function fromEvent(diffMap, eventName) {
+  return O.create(observer => {
+    const handler = e => observer.next(e)
+    diffMap.on(eventName, handler)
+    return () => diffMap.off(eventName, handler)
+  })
+}
+
+function diff(previous, current) {
+  return jsondiffpatch.diff(previous, current)
+}
+
+function patch(diffMap, previousDescriptor, descriptor) {
+  const delta = diff(previousDescriptor, descriptor)
+  const {controls, map, sources, layers} = delta
+  if (map) {
+    patchMap(diffMap, map, descriptor.map)
+  }
+
+  return descriptor
+}
+
+function patchMap(diffMap, mapDelta, mapDescriptor) {
+  if (mapDelta.center || mapDelta.zoom) {
+    diffMap.easeTo({
+      center: mapDescriptor.center,
+      zoom: mapDescriptor.zoom
+    })
+  }
+}
+
+function diffAndPatch(descriptor) {
   if (typeof descriptor === `undefined` || !descriptor) { return undefined }
 
   const anchorId = descriptor.map.container
   const anchor = document.getElementById(anchorId)
-  //console.log(anchor)
+
   if (!anchor) {
-    //console.log(`not anchored`)
     g_unanchoredLedger[anchorId] = descriptor
-    return null
+    return O.never()
   } else {
-    //console.log(`anchored`)
-    let diffMap = anchor['diffMap']
-
+    let diffMap = (<any> anchor).diffMap
     if (!diffMap) {
-      diffMap = new DiffPatchMap(accessToken, descriptor)
-      anchor['diffMap'] = diffMap
-    } else {
-      diffMap.patch(descriptor)
-    }
+      const {controls, map, sources, layers} = descriptor
+      diffMap = new mapboxgl.Map(descriptor.map)
+      return O.create(observer => {
+        diffMap.on('load', function () {
+          if (sources && sources.length) {
+            sources.forEach(s => diffMap.addSource(s.name, s.data))
+          }
 
-    return descriptor
+          if (layers && layers.length) {
+            layers.forEach(l => diffMap.addLayer(l))
+          }
+
+          ;(<any> anchor).diffMap = diffMap
+          ;(<any> anchor).previousDescriptor = descriptor
+          observer.next(descriptor)
+          observer.complete()
+        })
+      })
+    } else {
+      const previousDescriptor = (<any> anchor).previousDescriptor
+      return O.of(patch(diffMap, previousDescriptor, descriptor))
+    }
   }
 }
 
@@ -59,14 +99,12 @@ function renderRawRootElem$(descriptor$, accessToken) {
       } else {
         return O.never()
       }
-
     })
 
   const patch$ = O.merge(descriptor$, fromMutation$)
-    .map(descriptor => {
-      return diffAndPatch(descriptor, accessToken)
+    .concatMap(descriptor => {
+      return diffAndPatch(descriptor)
     })
-    .filter(x => !!x)
     .publish().refCount()
 
   return patch$
@@ -110,6 +148,10 @@ function makeMapSelector(applied$, runSA) {
 function makeMapDOMDriver(accessToken) {
   if (!accessToken || (typeof(accessToken) !== 'string' && !(accessToken instanceof String))) throw new Error(`MapDOMDriver requires an access token.`)
 
+  if(!mapboxgl.accessToken) {
+    mapboxgl.accessToken = accessToken
+  }
+
   function mapDOMDriver(descriptor$, runSA) {
 
     let adapted$
@@ -131,7 +173,7 @@ function makeMapDOMDriver(accessToken) {
     }
   }
 
-  (<any> mapDOMDriver).streamAdapter = rxjsSA
+  ;(<any> mapDOMDriver).streamAdapter = rxjsSA
   return mapDOMDriver
 }
 
