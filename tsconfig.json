@@ -1,0 +1,22 @@
+{
+    "compilerOptions": {
+        "target": "es6",
+        "rootDir": ".",
+        "outDir": "dist",
+        "inlineSourceMap": true,
+        "inlineSources": true,
+        "baseUrl": ".",
+        "paths": {
+            "mapbox-gl": [
+                "typings/globals/mapbox-gl/index.d.ts"
+            ],
+            "jsondiffpatch": [
+                "typingsLocal/jsondiffpatch.d.ts"
+            ]
+        },
+        "moduleResolution": "node"
+    },
+    "exclude": [
+      "node_modules"
+    ]
+}
