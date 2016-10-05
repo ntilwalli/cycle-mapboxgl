@@ -77,9 +77,9 @@ const cjsOptions = {
 }
 
 export default {
-  entry: 'test/index.ts',
-  format: 'umd',
-  //plugins: [babel(babelOptions), nodeResolve(nodeOptions), commonjs(cjsOptions), builtins(), globals(), json()],
+  entry: 'main.ts',
+  format: 'cjs',
   plugins: [typescript(typescriptOptions), nodeResolve(nodeOptions), commonjs(cjsOptions), builtins(), globals(), json()],
-  dest: 'dist/test/index.js' // equivalent to --output
+  dest: 'dist/cycle-mapboxgl.cjs.js'// equivalent to --output,
+
 };

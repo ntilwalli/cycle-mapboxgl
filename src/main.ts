@@ -18,9 +18,18 @@ function diff(previous, current) {
 
 function patch(diffMap, previousDescriptor, descriptor) {
   const delta = diff(previousDescriptor, descriptor)
-  const {controls, map, sources, layers} = delta
-  if (map) {
-    patchMap(diffMap, map, descriptor.map)
+  // console.log(`previous`, previousDescriptor)
+  // console.log(`current`, descriptor)
+  // console.log(`delta`, delta)
+  if (delta) {
+    const {controls, map, sources, layers} = delta
+    if (map) {
+      patchMap(diffMap, map, descriptor.map)
+    }
+
+    if (sources) {
+      patchSources(diffMap, sources, descriptor.sources)
+    }
   }
 
   return descriptor
@@ -32,6 +41,26 @@ function patchMap(diffMap, mapDelta, mapDescriptor) {
       center: mapDescriptor.center,
       zoom: mapDescriptor.zoom
     })
+  }
+
+  if (mapDelta.dragPan) {
+    //console.log(`dragPan`, mapDescriptor.dragPan)
+    if(mapDescriptor.dragPan) {
+      //console.log(`enabling drag`)
+      diffMap.dragPan.enable()
+    } else {
+      //console.log(`disabling drag`)
+      diffMap.dragPan.disable()
+    }
+  }
+}
+
+function patchSources(diffMap, sourcesDelta, sourcesDescriptor) {
+  if (sourcesDelta) {
+    for (let key in sourcesDelta) {
+      const newData = sourcesDescriptor[key].data
+      diffMap.getSource(key).setData(newData)
+    }
   }
 }
 
@@ -51,12 +80,25 @@ function diffAndPatch(descriptor) {
       diffMap = new mapboxgl.Map(descriptor.map)
       return O.create(observer => {
         diffMap.on('load', function () {
-          if (sources && sources.length) {
-            sources.forEach(s => diffMap.addSource(s.name, s.data))
+          /*** HACK to allow for enable/disable from outset */
+          diffMap.dragPan.disable()
+          diffMap.dragPan.enable()
+          /*** End HACK */
+
+          if (sources) {
+            for (let key in sources) {
+              if (sources.hasOwnProperty(key)) {
+                diffMap.addSource(key, sources[key])
+              }
+            }
           }
 
-          if (layers && layers.length) {
-            layers.forEach(l => diffMap.addLayer(l))
+          if (layers) {
+            for (let key in layers) {
+              if (layers.hasOwnProperty(key)) {
+                diffMap.addLayer(layers[key])
+              }
+            }
           }
 
           ;(<any> anchor).diffMap = diffMap
@@ -67,7 +109,9 @@ function diffAndPatch(descriptor) {
       })
     } else {
       const previousDescriptor = (<any> anchor).previousDescriptor
-      return O.of(patch(diffMap, previousDescriptor, descriptor))
+      const out = O.of(patch(diffMap, previousDescriptor, descriptor))
+      ;(<any> anchor).previousDescriptor = descriptor
+      return out
     }
   }
 }
@@ -102,12 +146,25 @@ function renderRawRootElem$(descriptor$, accessToken) {
     })
 
   const patch$ = O.merge(descriptor$, fromMutation$)
-    .concatMap(descriptor => {
+    .mergeMap(descriptor => {
       return diffAndPatch(descriptor)
     })
     .publish().refCount()
 
   return patch$
+}
+
+function makeQueryRenderedFilter(diffMap$, event$, runSA) {
+  return function queryRenderedFilter(info) {
+    return diffMap$.switchMap(diffMap => {
+      return event$.map(e => {
+        const features = diffMap.queryRenderedFeatures(e.point, info)
+        return features
+      })
+      //.filter(x => x.length)
+      .publish().refCount()
+    })
+  }
 }
 
 function makeEventsSelector(diffMap$, runSA) {
@@ -122,7 +179,11 @@ function makeEventsSelector(diffMap$, runSA) {
     })
     .publish().refCount()
 
-    return runSA ? runSA.adapt(out$, rxjsSA.streamSubscribe) : out$
+    const observable = runSA ? runSA.adapt(out$, rxjsSA.streamSubscribe) : out$,
+    return {
+      observable,
+      queryRenderedFilter: makeQueryRenderedFilter(diffMap$, observable, runSA)
+    }
   }
 }
 
@@ -145,7 +206,7 @@ function makeMapSelector(applied$, runSA) {
   }
 }
 
-function makeMapDOMDriver(accessToken) {
+export function makeMapDOMDriver(accessToken) {
   if (!accessToken || (typeof(accessToken) !== 'string' && !(accessToken instanceof String))) throw new Error(`MapDOMDriver requires an access token.`)
 
   if(!mapboxgl.accessToken) {
@@ -175,8 +236,4 @@ function makeMapDOMDriver(accessToken) {
 
   ;(<any> mapDOMDriver).streamAdapter = rxjsSA
   return mapDOMDriver
-}
-
-export {
-  makeMapDOMDriver
 }
