@@ -206,14 +206,14 @@ function makeMapSelector(applied$, runSA) {
   }
 }
 
-export function makeMapDOMDriver(accessToken) {
+export function makeMapJSONDriver(accessToken) {
   if (!accessToken || (typeof(accessToken) !== 'string' && !(accessToken instanceof String))) throw new Error(`MapDOMDriver requires an access token.`)
 
   if(!mapboxgl.accessToken) {
     mapboxgl.accessToken = accessToken
   }
 
-  function mapDOMDriver(descriptor$, runSA) {
+  function mapJSONDriver(descriptor$, runSA) {
 
     let adapted$
     if (runSA) {
@@ -234,6 +234,6 @@ export function makeMapDOMDriver(accessToken) {
     }
   }
 
-  ;(<any> mapDOMDriver).streamAdapter = rxjsSA
-  return mapDOMDriver
+  ;(<any> mapJSONDriver).streamAdapter = rxjsSA
+  return mapJSONDriver
 }

@@ -1,5 +1,5 @@
-import {makeMapDOMDriver} from './src/main'
+import {makeMapJSONDriver} from './src/main'
 
 export {
-  makeMapDOMDriver
+  makeMapJSONDriver
 }

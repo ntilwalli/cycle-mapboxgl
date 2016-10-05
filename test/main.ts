@@ -1,7 +1,7 @@
 import {Observable as O} from 'rxjs'
 import Cycle from '@cycle/rxjs-run'
 import {makeDOMDriver, div} from '@cycle/dom'
-import {makeMapDOMDriver} from '../main'
+import {makeMapJSONDriver} from '../main'
 
 
 function between(first, second) {
@@ -28,56 +28,56 @@ function toGeoJSON(lngLat) {
 
 function main(sources) {
 
-    const anchorId = `mapdiv`
-    const descriptor = {
-      controls: {},
-      map: {
-        container: anchorId, 
-        style: `mapbox://styles/mapbox/bright-v9`, //stylesheet location
-        center: [-74.50, 40], // starting position
-        zoom: 9, // starting zoom,
-        dragPan: true
-      },
-      sources: {
-        venue: {
-          type: `geojson`,
-          data: toGeoJSON({lng: -74.5, lat: 40})
-        }
-      },
-      layers: {
-        venue: {
-          id: `venue`,
-          //type: `symbol`,
-          type: `circle`,
-          source: `venue`,
-          paint: {
-            "circle-color": "#FF0000",
-            "circle-radius": 10
-          }
-          // layout: {
-          //     "icon-image": `{icon}-15`,
-          //     "icon-size": 1.5,
-          //     //"text-field": `{title}`,
-          //     "text-font": [`Open Sans Semibold`, `Arial Unicode MS Bold`],
-          //     "text-offset": [0, 0.6],
-          //     "text-anchor": `top`
-          // }
-        }
-      },
-      canvas: {
-        style: {
-          cursor: `grab`
-        }
+  const anchorId = `mapdiv`
+  const descriptor = {
+    controls: {},
+    map: {
+      container: anchorId, 
+      style: `mapbox://styles/mapbox/bright-v9`, //stylesheet location
+      center: [-74.50, 40], // starting position
+      zoom: 9, // starting zoom,
+      dragPan: true
+    },
+    sources: {
+      venue: {
+        type: `geojson`,
+        data: toGeoJSON({lng: -74.5, lat: 40})
       }
+    },
+    layers: {
+      venue: {
+        id: `venue`,
+        //type: `symbol`,
+        type: `circle`,
+        source: `venue`,
+        paint: {
+          "circle-color": "#FF0000",
+          "circle-radius": 10
+        }
+        // layout: {
+        //     "icon-image": `{icon}-15`,
+        //     "icon-size": 1.5,
+        //     //"text-field": `{title}`,
+        //     "text-font": [`Open Sans Semibold`, `Arial Unicode MS Bold`],
+        //     "text-offset": [0, 0.6],
+        //     "text-anchor": `top`
+        // }
+      }
+    },
+    canvas: {
+      style: {
+        cursor: `grab`
+      }
+    }
   }
 
-  // const mapClick$ = sources.MapDOM.select(anchorId).events(`click`).observable
+  // const mapClick$ = sources.MapJSON.select(anchorId).events(`click`).observable
   //    .map(ev => {
   //      return ev.lngLat
   //    })
   //    .publish().refCount()
 
-  const mapAccessor = sources.MapDOM.select(anchorId)
+  const mapAccessor = sources.MapJSON.select(anchorId)
   const mouseDown$ = mapAccessor.events(`mousedown`)
     .queryRenderedFilter({
       layers: [`venue`]
@@ -102,7 +102,7 @@ function main(sources) {
         div(`#${anchorId}`, []),
         div([x])
       ])),
-    MapDOM: O.merge(markerMove$
+    MapJSON: O.merge(markerMove$
       .map(x => {
         descriptor.sources.venue.data = toGeoJSON(x)
         return JSON.parse(JSON.stringify(descriptor))
@@ -122,7 +122,7 @@ function main(sources) {
 
 Cycle.run(main, {
   DOM: makeDOMDriver(`#app`),
-  MapDOM: makeMapDOMDriver(
+  MapJSON: makeMapJSONDriver(
     `pk.eyJ1IjoibXJyZWRlYXJzIiwiYSI6ImNpbHJsZnJ3NzA4dHZ1bGtub2hnbGVnbHkifQ.ph2UH9MoZtkVB0_RNBOXwA`
   )
 })
