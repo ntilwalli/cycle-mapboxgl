@@ -1,0 +1,11 @@
+dist
+.npmignore
+.gitignore
+index.html
+rollup.*
+tsconfig.json
+typings.json
+typingsLocal
+test
+src/main.ts
+typings

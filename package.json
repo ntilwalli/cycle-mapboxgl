@@ -1,9 +1,8 @@
 {
   "name": "cycle-mapboxgl",
-  "version": "0.0.2",
+  "version": "0.0.6",
   "description": "CycleJS driver for Mapbox GL using jsondiffpatch",
-  "esnext:main": "./dist/cycle-mapboxgl.es.js",
-  "module": "./lib/es6/main.js",
+  "esnext:main": "./lib/es6/main.js",
   "main": "./lib/cjs/main.js",
   "esnext:types": "./lib/es6/main.d.ts",
   "types": "./lib/cjs/main.d.ts",
