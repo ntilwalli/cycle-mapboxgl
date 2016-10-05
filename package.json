@@ -3,12 +3,16 @@
   "version": "0.0.1",
   "description": "CycleJS driver for Mapbox GL using jsondiffpatch",
   "esnext:main": "./dist/cycle-mapboxgl.es.js",
-  "main": "./dist/cycle-mapboxgl.cjs.js",
+  "module": "./lib/es6/main.js",
+  "main": "./lib/cjs/main.js",
+  "esnext:types": "./lib/es6/main.d.ts",
+  "types": "./lib/cjs/main.d.ts",
   "scripts": {
-    "build": "rollup --config rollup.config.cjs.js & rollup --config rollup.config.es.js",
+    "build": "tsc --target es5 --outDir lib/cjs --lib es6,dom,scripthost; tsc --target es6 --outDir lib/es6",
+    "dist": "rollup --config rollup.config.cjs.js & rollup --config rollup.config.es.js",
     "test": "rollup --config rollup.config.test.js -w & sleep 8; live-server",
-    "prepublish": "npm run build",
-    "post": "npm run prepublish; npm publish"
+    "prepublish": "npm run clean; npm run build; npm run dist",
+    "clean": "rm -rf lib; rm -rf dist"
   },
   "repository": {
     "type": "git",

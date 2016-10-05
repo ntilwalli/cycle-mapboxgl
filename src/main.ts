@@ -179,7 +179,7 @@ function makeEventsSelector(diffMap$, runSA) {
     })
     .publish().refCount()
 
-    const observable = runSA ? runSA.adapt(out$, rxjsSA.streamSubscribe) : out$,
+    const observable = runSA ? runSA.adapt(out$, rxjsSA.streamSubscribe) : out$
     return {
       observable,
       queryRenderedFilter: makeQueryRenderedFilter(diffMap$, observable, runSA)

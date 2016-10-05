@@ -2,7 +2,6 @@
     "compilerOptions": {
         "target": "es6",
         "rootDir": ".",
-        "outDir": "dist",
         "inlineSourceMap": true,
         "inlineSources": true,
         "baseUrl": ".",
@@ -14,9 +13,12 @@
                 "typingsLocal/jsondiffpatch.d.ts"
             ]
         },
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "declaration": true
     },
     "exclude": [
-      "node_modules"
+      "node_modules",
+      "lib",
+      "dist"
     ]
 }

@@ -78,7 +78,7 @@ const cjsOptions = {
 
 export default {
   entry: 'test/main.ts',
-  format: 'umd',
+  format: 'iife',
   //plugins: [babel(babelOptions), nodeResolve(nodeOptions), commonjs(cjsOptions), builtins(), globals(), json()],
   plugins: [typescript(typescriptOptions), nodeResolve(nodeOptions), commonjs(cjsOptions), builtins(), globals(), json()],
   dest: 'dist/test/main.js'// equivalent to --output,
