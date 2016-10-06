@@ -2,7 +2,7 @@
   "name": "cycle-mapboxgl",
   "version": "0.0.6",
   "description": "CycleJS driver for Mapbox GL using jsondiffpatch",
-  "esnext:main": "./lib/es6/main.js",
+  "jsnext:main": "./lib/es6/main.js",
   "main": "./lib/cjs/main.js",
   "esnext:types": "./lib/es6/main.d.ts",
   "types": "./lib/cjs/main.d.ts",
@@ -47,6 +47,7 @@
     "rollup-plugin-node-globals": "^1.0.9",
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-typescript": "^0.8.1",
+    "typescript": "^2.1.0-dev.20161005",
     "xstream": "*"
   }
 }
