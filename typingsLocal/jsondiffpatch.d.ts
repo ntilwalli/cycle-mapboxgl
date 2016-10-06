@@ -1,4 +1,4 @@
-//declare module "jsondiffpatch" {
+declare module "jsondiffpatch" {
 
   interface IProcessorOptions {}
   
@@ -30,4 +30,4 @@
   export const version: string;
   export const formatters: IFormatters | any;
   export const console: any
-//}
+}

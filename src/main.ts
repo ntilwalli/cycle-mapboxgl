@@ -206,8 +206,8 @@ function makeMapSelector(applied$, runSA) {
   }
 }
 
-export function makeMapJSONDriver(accessToken) {
-  if (!accessToken || (typeof(accessToken) !== 'string' && !(accessToken instanceof String))) throw new Error(`MapDOMDriver requires an access token.`)
+export function makeMapJSONDriver(accessToken: string) {
+  if (!accessToken || (typeof(accessToken) !== 'string')) throw new Error(`MapDOMDriver requires an access token.`)
 
   if(!mapboxgl.accessToken) {
     mapboxgl.accessToken = accessToken
