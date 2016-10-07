@@ -28,19 +28,20 @@ function toGeoJSON(lngLat) {
 
 function main(sources) {
 
+  const marker = {lng: -74.5, lat: 40}
   const mapSources = {
-    venue: {
+    marker: {
       type: `geojson`,
-      data: toGeoJSON({lng: -74.5, lat: 40})
+      data: toGeoJSON(marker)
     }
   }
 
   const layers = {
-    venue: {
-      id: `venue`,
+    marker: {
+      id: `marker`,
       //type: `symbol`,
       type: `circle`,
-      source: `venue`,
+      source: `marker`,
       paint: {
         "circle-color": "#FF0000",
         "circle-radius": 10
@@ -66,8 +67,8 @@ function main(sources) {
       zoom: 9, // starting zoom,
       dragPan: true
     },
-    sources: undefined,
-    layers: undefined,
+    sources: mapSources,
+    layers,
     canvas: {
       style: {
         cursor: `grab`
@@ -81,24 +82,97 @@ function main(sources) {
   //    })
   //    .publish().refCount()
 
+  // const mapAccessor = sources.MapJSON.select(anchorId)
+  // const mouseDown$ = mapAccessor.events(`mousedown`)
+  //   .queryRenderedFilter({
+  //     layers: [`venue`]
+  //   })
+  //   .filter(x => x && x.length)
+  //   //.do(x => console.log(`mouseDown$`, x))
+  //   .publish().refCount()
+
+  // const mouseMove$ = mapAccessor.events(`mousemove`).observable
+  // const mouseUp$ = mapAccessor.events(`mouseup`).observable
+  //     //.do(x => console.log(`mouseup$`, x))
+  //     .publish().refCount()
+  // const markerMove$ = mouseMove$.let(between(mouseDown$, mouseUp$))
+  //   .map(ev => ev.lngLat)
+  //   .publish().refCount()
+
+  // const mapClick$ = mapAccessor.events(`click`).observable
+
+  // return {
+  //   DOM: markerMove$
+  //    .map(x => JSON.stringify(x))
+  //    .startWith(`blah`)
+  //    .map(x => div([
+  //       div(`#${anchorId}`, []),
+  //       div([x])
+  //     ])),
+  //   MapJSON: O.merge(markerMove$
+  //     .map(x => {
+  //       descriptor.sources.venue.data = toGeoJSON(x)
+  //       return JSON.parse(JSON.stringify(descriptor))
+  //     })
+  //     .startWith(JSON.parse(JSON.stringify(descriptor))),
+  //     // mouseDown$.map(() => {
+  //     //   descriptor.map.dragPan = false
+  //     //   return JSON.parse(JSON.stringify(descriptor))
+  //     // }),
+  //     // mouseUp$.map(() => {
+  //     //   descriptor.map.dragPan = true
+  //     //   return JSON.parse(JSON.stringify(descriptor))
+  //     // }),
+  //     mapClick$.map(ev => {
+  //       mapSources.venue.data = toGeoJSON(ev.lngLat)
+  //       descriptor.sources = mapSources
+  //       descriptor.layers = layers
+  //       return JSON.parse(JSON.stringify(descriptor))
+  //     })
+  //   )
+  // }
+
+
   const mapAccessor = sources.MapJSON.select(anchorId)
   const mouseDown$ = mapAccessor.events(`mousedown`)
     .queryRenderedFilter({
-      layers: [`venue`]
+      layers: [`marker`]
     })
     .filter(x => x && x.length)
-    //.do(x => console.log(`mouseDown$`, x))
     .publish().refCount()
 
-  const mouseMove$ = mapAccessor.events(`mousemove`).observable
+  const mouseMoveObj = mapAccessor.events(`mousemove`)
+  const mouseMove$ = mouseMoveObj.observable
+    .map(x => x.lngLat)
+    .publish().refCount()
+
+  const markerHover$ = mouseMoveObj
+    .queryRenderedFilter({
+      layers: [`marker`]
+    })
+    .map(x => !!(x && x.length))
+    .distinctUntilChanged()
+    .publish().refCount()
+
   const mouseUp$ = mapAccessor.events(`mouseup`).observable
-      //.do(x => console.log(`mouseup$`, x))
-      .publish().refCount()
+    .publish().refCount()
   const markerMove$ = mouseMove$.let(between(mouseDown$, mouseUp$))
     .map(ev => ev.lngLat)
     .publish().refCount()
 
-  const mapClick$ = mapAccessor.events(`click`).observable
+  const state$ = O.merge(
+    markerMove$.map(x => state => {
+      state.lngLat = x
+      return state
+    }),
+    markerHover$.map(x => state => {
+      state.hover = x
+      return state
+    })
+  )
+  .startWith({lngLat: marker, hover: false})
+  .scan((acc, f: Function) => f(acc))
+
 
   return {
     DOM: markerMove$
@@ -108,28 +182,17 @@ function main(sources) {
         div(`#${anchorId}`, []),
         div([x])
       ])),
-    MapJSON: O.merge(markerMove$
-      .map(x => {
-        descriptor.sources.venue.data = toGeoJSON(x)
-        return JSON.parse(JSON.stringify(descriptor))
-      })
-      .startWith(JSON.parse(JSON.stringify(descriptor))),
-      // mouseDown$.map(() => {
-      //   descriptor.map.dragPan = false
-      //   return JSON.parse(JSON.stringify(descriptor))
-      // }),
-      // mouseUp$.map(() => {
-      //   descriptor.map.dragPan = true
-      //   return JSON.parse(JSON.stringify(descriptor))
-      // }),
-      mapClick$.map(ev => {
-        mapSources.venue.data = toGeoJSON(ev.lngLat)
-        descriptor.sources = mapSources
-        descriptor.layers = layers
-        return JSON.parse(JSON.stringify(descriptor))
-      })
-    )
+    MapJSON: state$.map(({lngLat, hover}) => {
+      descriptor.sources.marker.data = toGeoJSON(lngLat)
+      descriptor.canvas.style.cursor = hover ? `move` : `pointer`
+      return JSON.parse(JSON.stringify(descriptor))
+    })
   }
+
+
+
+
+
 }
 
 Cycle.run(main, {

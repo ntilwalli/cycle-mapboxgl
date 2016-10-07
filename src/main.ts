@@ -22,7 +22,11 @@ function patch(diffMap, previousDescriptor, descriptor) {
   // console.log(`current`, descriptor)
   // console.log(`delta`, delta)
   if (delta) {
-    const {controls, map, sources, layers} = delta
+    const {controls, map, sources, layers, canvas} = delta
+    if (controls) {
+      patchControls(diffMap, controls, descriptor.controls)
+    }
+
     if (map) {
       patchMap(diffMap, map, descriptor.map)
     }
@@ -33,6 +37,10 @@ function patch(diffMap, previousDescriptor, descriptor) {
 
     if (layers) {
       patchLayers(diffMap, layers, descriptor.layers)
+    }
+
+    if (canvas) {
+      patchCanvas(diffMap, canvas, descriptor.canvas)
     }
   }
 
@@ -148,6 +156,19 @@ function patchLayers(diffMap, delta, descriptor) {
   }
 }
 
+function patchControls(diffMap, delta, descriptor) {
+
+}
+
+function patchCanvas(diffMap, delta, descriptor) {
+  if (delta) {
+    if (descriptor.style && descriptor.style.cursor) {
+      diffMap.getCanvas().style.cursor = descriptor.style.cursor
+    }
+  }
+}
+
+
 function diffAndPatch(descriptor) {
   if (typeof descriptor === `undefined` || !descriptor) { return undefined }
 
@@ -160,7 +181,7 @@ function diffAndPatch(descriptor) {
   } else {
     let diffMap = (<any> anchor).diffMap
     if (!diffMap) {
-      const {controls, map, sources, layers} = descriptor
+      const {controls, map, sources, layers, canvas} = descriptor
       diffMap = new mapboxgl.Map(descriptor.map)
       return O.create(observer => {
         diffMap.on('load', function () {
@@ -168,6 +189,10 @@ function diffAndPatch(descriptor) {
           diffMap.dragPan.disable()
           diffMap.dragPan.enable()
           /*** End HACK */
+
+          if (controls) {
+
+          }
 
           if (sources) {
             for (let key in sources) {
@@ -182,6 +207,12 @@ function diffAndPatch(descriptor) {
               if (layers.hasOwnProperty(key)) {
                 diffMap.addLayer(layers[key])
               }
+            }
+          }
+
+          if (canvas) {
+            if (canvas.style && canvas.style.cursor) {
+              diffMap.getCanvas().style.cursor = canvas.style.cursor
             }
           }
 
@@ -240,7 +271,7 @@ function renderRawRootElem$(descriptor$, accessToken) {
 
 function makeQueryRenderedFilter(diffMap$, event$, runSA) {
   return function queryRenderedFilter(info) {
-    return diffMap$.switchMap(diffMap => {
+    const out$ = diffMap$.switchMap(diffMap => {
       return event$.map(e => {
         const layers = info && info.layers && info.layers.filter(x => diffMap.getLayer(x))
         if (layers) {
@@ -253,6 +284,9 @@ function makeQueryRenderedFilter(diffMap$, event$, runSA) {
       //.filter(x => x.length)
       .publish().refCount()
     })
+
+    const observable = runSA ? runSA.adapt(out$, rxjsSA.streamSubscribe) : out$
+    return observable
   }
 }
 
@@ -271,7 +305,7 @@ function makeEventsSelector(diffMap$, runSA) {
     const observable = runSA ? runSA.adapt(out$, rxjsSA.streamSubscribe) : out$
     return {
       observable,
-      queryRenderedFilter: makeQueryRenderedFilter(diffMap$, observable, runSA)
+      queryRenderedFilter: makeQueryRenderedFilter(diffMap$, out$, runSA)
     }
   }
 }
