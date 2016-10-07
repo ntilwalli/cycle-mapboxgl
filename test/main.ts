@@ -28,6 +28,34 @@ function toGeoJSON(lngLat) {
 
 function main(sources) {
 
+  const mapSources = {
+    venue: {
+      type: `geojson`,
+      data: toGeoJSON({lng: -74.5, lat: 40})
+    }
+  }
+
+  const layers = {
+    venue: {
+      id: `venue`,
+      //type: `symbol`,
+      type: `circle`,
+      source: `venue`,
+      paint: {
+        "circle-color": "#FF0000",
+        "circle-radius": 10
+      }
+      // layout: {
+      //     "icon-image": `{icon}-15`,
+      //     "icon-size": 1.5,
+      //     //"text-field": `{title}`,
+      //     "text-font": [`Open Sans Semibold`, `Arial Unicode MS Bold`],
+      //     "text-offset": [0, 0.6],
+      //     "text-anchor": `top`
+      // }
+    }
+  }
+
   const anchorId = `mapdiv`
   const descriptor = {
     controls: {},
@@ -38,32 +66,8 @@ function main(sources) {
       zoom: 9, // starting zoom,
       dragPan: true
     },
-    sources: {
-      venue: {
-        type: `geojson`,
-        data: toGeoJSON({lng: -74.5, lat: 40})
-      }
-    },
-    layers: {
-      venue: {
-        id: `venue`,
-        //type: `symbol`,
-        type: `circle`,
-        source: `venue`,
-        paint: {
-          "circle-color": "#FF0000",
-          "circle-radius": 10
-        }
-        // layout: {
-        //     "icon-image": `{icon}-15`,
-        //     "icon-size": 1.5,
-        //     //"text-field": `{title}`,
-        //     "text-font": [`Open Sans Semibold`, `Arial Unicode MS Bold`],
-        //     "text-offset": [0, 0.6],
-        //     "text-anchor": `top`
-        // }
-      }
-    },
+    sources: undefined,
+    layers: undefined,
     canvas: {
       style: {
         cursor: `grab`
@@ -82,7 +86,7 @@ function main(sources) {
     .queryRenderedFilter({
       layers: [`venue`]
     })
-    .filter(x => x.length)
+    .filter(x => x && x.length)
     //.do(x => console.log(`mouseDown$`, x))
     .publish().refCount()
 
@@ -93,6 +97,8 @@ function main(sources) {
   const markerMove$ = mouseMove$.let(between(mouseDown$, mouseUp$))
     .map(ev => ev.lngLat)
     .publish().refCount()
+
+  const mapClick$ = mapAccessor.events(`click`).observable
 
   return {
     DOM: markerMove$
@@ -108,12 +114,18 @@ function main(sources) {
         return JSON.parse(JSON.stringify(descriptor))
       })
       .startWith(JSON.parse(JSON.stringify(descriptor))),
-      mouseDown$.map(() => {
-        descriptor.map.dragPan = false
-        return JSON.parse(JSON.stringify(descriptor))
-      }),
-      mouseUp$.map(() => {
-        descriptor.map.dragPan = true
+      // mouseDown$.map(() => {
+      //   descriptor.map.dragPan = false
+      //   return JSON.parse(JSON.stringify(descriptor))
+      // }),
+      // mouseUp$.map(() => {
+      //   descriptor.map.dragPan = true
+      //   return JSON.parse(JSON.stringify(descriptor))
+      // }),
+      mapClick$.map(ev => {
+        mapSources.venue.data = toGeoJSON(ev.lngLat)
+        descriptor.sources = mapSources
+        descriptor.layers = layers
         return JSON.parse(JSON.stringify(descriptor))
       })
     )

@@ -30,6 +30,10 @@ function patch(diffMap, previousDescriptor, descriptor) {
     if (sources) {
       patchSources(diffMap, sources, descriptor.sources)
     }
+
+    if (layers) {
+      patchLayers(diffMap, layers, descriptor.layers)
+    }
   }
 
   return descriptor
@@ -55,12 +59,90 @@ function patchMap(diffMap, mapDelta, mapDescriptor) {
   }
 }
 
-function patchSources(diffMap, sourcesDelta, sourcesDescriptor) {
-  if (sourcesDelta) {
-    for (let key in sourcesDelta) {
-      const newData = sourcesDescriptor[key].data
-      diffMap.getSource(key).setData(newData)
+function patchSources(diffMap, delta, descriptor) {
+  if (delta) {
+    if (Array.isArray(delta)) {
+      const len = delta.length
+      switch (len) {
+        case 1: // Add
+          const adds = delta[0]
+          for (let key in adds) {
+            if (adds.hasOwnProperty(key)) {
+              const data = adds[key]
+              diffMap.addSource(key, data)
+            }
+          }
+          break
+        case 2: // Modify
+          const mods = delta[0]
+          for (let key in adds) {
+            if (adds.hasOwnProperty(key)) {
+              diffMap.removeSource(key)
+              diffMap.addSource(key, descriptor[key])
+            }
+          }
+          break
+        case 3: // Delete
+          const dels = delta[0]
+          for (let key in adds) {
+            if (adds.hasOwnProperty(key)) {
+              diffMap.removeSource(key)
+            }
+          }
+          break
+        default:
+          throw new Error("Invalid delta length")
+      }
+    } else {
+      for (let key in delta) {
+        const newData = descriptor[key].data
+        diffMap.getSource(key).setData(newData)
+      }
     }
+  }
+}
+
+function patchLayers(diffMap, delta, descriptor) {
+  if (delta) {
+    if (Array.isArray(delta)) {
+      const len = delta.length
+      switch (len) {
+        case 1: // Add
+          const adds = delta[0]
+          for (let key in adds) {
+            if (adds.hasOwnProperty(key)) {
+              const data = adds[key]
+              diffMap.addLayer(data)
+            }
+          }
+          break
+        case 2: // Modify
+          const mods = delta[0]
+          for (let key in adds) {
+            if (adds.hasOwnProperty(key)) {
+              diffMap.removeLayer(key)
+              diffMap.addLayer(descriptor[key])
+            }
+          }
+          break
+        case 3: // Delete
+          const dels = delta[0]
+          for (let key in adds) {
+            if (adds.hasOwnProperty(key)) {
+              diffMap.removeLayer(key)
+            }
+          }
+          break
+        default:
+          throw new Error("Invalid delta length")
+      }
+    } 
+    // else {
+    //   // for (let key in delta) {
+    //   //   const newData = descriptor[key].data
+    //   //   diffMap.getSource(key).setData(newData)
+    //   // }
+    // }
   }
 }
 
@@ -158,8 +240,13 @@ function makeQueryRenderedFilter(diffMap$, event$, runSA) {
   return function queryRenderedFilter(info) {
     return diffMap$.switchMap(diffMap => {
       return event$.map(e => {
-        const features = diffMap.queryRenderedFeatures(e.point, info)
-        return features
+        const layers = info && info.layers && info.layers.filter(x => diffMap.getLayer(x))
+        if (layers) {
+          const features = diffMap.queryRenderedFeatures(e.point, {layers})
+          return features
+        } 
+
+        return undefined
       })
       //.filter(x => x.length)
       .publish().refCount()
