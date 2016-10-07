@@ -63,29 +63,30 @@ function patchSources(diffMap, delta, descriptor) {
   if (delta) {
     if (Array.isArray(delta)) {
       const len = delta.length
+      let vals
       switch (len) {
         case 1: // Add
-          const adds = delta[0]
-          for (let key in adds) {
-            if (adds.hasOwnProperty(key)) {
-              const data = adds[key]
+          vals = delta[0]
+          for (let key in vals) {
+            if (vals.hasOwnProperty(key)) {
+              const data = vals[key]
               diffMap.addSource(key, data)
             }
           }
           break
         case 2: // Modify
-          const mods = delta[0]
-          for (let key in adds) {
-            if (adds.hasOwnProperty(key)) {
+          vals = delta[0]
+          for (let key in vals) {
+            if (vals.hasOwnProperty(key)) {
               diffMap.removeSource(key)
               diffMap.addSource(key, descriptor[key])
             }
           }
           break
         case 3: // Delete
-          const dels = delta[0]
-          for (let key in adds) {
-            if (adds.hasOwnProperty(key)) {
+          vals = delta[0]
+          for (let key in vals) {
+            if (vals.hasOwnProperty(key)) {
               diffMap.removeSource(key)
             }
           }
@@ -106,29 +107,30 @@ function patchLayers(diffMap, delta, descriptor) {
   if (delta) {
     if (Array.isArray(delta)) {
       const len = delta.length
+      let vals
       switch (len) {
         case 1: // Add
-          const adds = delta[0]
-          for (let key in adds) {
-            if (adds.hasOwnProperty(key)) {
-              const data = adds[key]
+          vals = delta[0]
+          for (let key in vals) {
+            if (vals.hasOwnProperty(key)) {
+              const data = vals[key]
               diffMap.addLayer(data)
             }
           }
           break
         case 2: // Modify
-          const mods = delta[0]
-          for (let key in adds) {
-            if (adds.hasOwnProperty(key)) {
+          vals = delta[0]
+          for (let key in vals) {
+            if (vals.hasOwnProperty(key)) {
               diffMap.removeLayer(key)
               diffMap.addLayer(descriptor[key])
             }
           }
           break
         case 3: // Delete
-          const dels = delta[0]
-          for (let key in adds) {
-            if (adds.hasOwnProperty(key)) {
+          vals = delta[0]
+          for (let key in vals) {
+            if (vals.hasOwnProperty(key)) {
               diffMap.removeLayer(key)
             }
           }
