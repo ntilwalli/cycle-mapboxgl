@@ -73,6 +73,9 @@ function main(sources) {
       style: {
         cursor: `grab`
       }
+    },
+    options: {
+      offset: [100, 100]
     }
   }
 
@@ -143,7 +146,6 @@ function main(sources) {
 
   const mouseMoveObj = mapAccessor.events(`mousemove`)
   const mouseMove$ = mouseMoveObj.observable
-    .map(x => x.lngLat)
     .publish().refCount()
 
   const markerHover$ = mouseMoveObj
@@ -183,6 +185,7 @@ function main(sources) {
         div([x])
       ])),
     MapJSON: state$.map(({lngLat, hover}) => {
+      descriptor.map.dragPan = hover ? false : true
       descriptor.sources.marker.data = toGeoJSON(lngLat)
       descriptor.canvas.style.cursor = hover ? `move` : `pointer`
       return JSON.parse(JSON.stringify(descriptor))

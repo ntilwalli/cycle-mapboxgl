@@ -22,13 +22,13 @@ function patch(diffMap, previousDescriptor, descriptor) {
   // console.log(`current`, descriptor)
   // console.log(`delta`, delta)
   if (delta) {
-    const {controls, map, sources, layers, canvas} = delta
+    const {controls, map, sources, layers, canvas, options} = delta
     if (controls) {
       patchControls(diffMap, controls, descriptor.controls)
     }
 
     if (map) {
-      patchMap(diffMap, map, descriptor.map)
+      patchMap(diffMap, map, descriptor.map, options)
     }
 
     if (sources) {
@@ -47,13 +47,29 @@ function patch(diffMap, previousDescriptor, descriptor) {
   return descriptor
 }
 
-function patchMap(diffMap, mapDelta, mapDescriptor) {
-  if (mapDelta.center || mapDelta.zoom) {
+function patchMap(diffMap, mapDelta, mapDescriptor, options) {
+  if (mapDelta.zoom) {
     diffMap.easeTo({
-      center: mapDescriptor.center,
+      center: diffMap.getCenter(),
       zoom: mapDescriptor.zoom
     })
   }
+
+  if (mapDelta.center) {
+    let newCenter = mapDescriptor.center
+    if (options && options.offset) {
+      const [x, y] = options.offset
+      const coordinates = diffMap.project(mapDescriptor.center)
+      const shiftedCenter = coordinates.sub({x, y})
+      newCenter = diffMap.unproject(shiftedCenter)
+    }
+    
+    diffMap.easeTo({
+      center: newCenter,
+      zoom: diffMap.getZoom()
+    })
+  }
+
 
   if (mapDelta.dragPan) {
     //console.log(`dragPan`, mapDescriptor.dragPan)
@@ -181,8 +197,9 @@ function diffAndPatch(descriptor) {
   } else {
     let diffMap = (<any> anchor).diffMap
     if (!diffMap) {
-      const {controls, map, sources, layers, canvas} = descriptor
+      const {controls, map, sources, layers, canvas, options} = descriptor
       diffMap = new mapboxgl.Map(descriptor.map)
+      
       return O.create(observer => {
         diffMap.on('load', function () {
           /*** HACK to allow for enable/disable from outset */
@@ -215,6 +232,15 @@ function diffAndPatch(descriptor) {
               diffMap.getCanvas().style.cursor = canvas.style.cursor
             }
           }
+
+          if (options && options.offset) {
+            const [x, y] = options.offset
+            const coordinates = diffMap.project(diffMap.getCenter())
+            const shiftedCenter = coordinates.sub({x, y})
+            const newCenter = diffMap.unproject(shiftedCenter)
+            diffMap.setCenter(newCenter)
+          }
+
 
           ;(<any> anchor).diffMap = diffMap
           ;(<any> anchor).previousDescriptor = descriptor
