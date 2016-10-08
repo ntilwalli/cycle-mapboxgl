@@ -7,8 +7,8 @@
   "esnext:types": "./lib/es6/main.d.ts",
   "types": "./lib/cjs/main.d.ts",
   "scripts": {
-    "build": "tsc --target es5 --outDir lib/cjs --lib es6,dom,scripthost; tsc --target es6 --outDir lib/es6",
-    "dist": "rollup --config rollup.config.cjs.js & rollup --config rollup.config.es.js",
+    "build": "tsc",
+    "dist": "rollup --config rollup.config.cjs.js",
     "test": "rollup --config rollup.config.test.js -w & sleep 8; live-server",
     "prepublish": "npm run clean; npm run build; npm run dist",
     "clean": "rm -rf lib; rm -rf dist"
@@ -38,6 +38,7 @@
     "@cycle/dom": "^12.2.5",
     "@cycle/rxjs-run": "^3.0.3",
     "@types/chai": "^3.4.34",
+    "@types/core-js": "^0.9.34",
     "@types/mocha": "^2.2.32",
     "chai": "^3.5.0",
     "mocha": "^3.1.0",
