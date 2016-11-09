@@ -29,6 +29,7 @@
   },
   "homepage": "https://github.com/ntilwalli/cycle-mapboxgl#readme",
   "dependencies": {
+    "@cycle/dom": "^12.2.8",
     "@cycle/rxjs-adapter": "^3.0.3",
     "jsondiffpatch": "^0.2.4",
     "mapbox-gl": "^0.25.1",

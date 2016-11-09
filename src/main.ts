@@ -249,10 +249,31 @@ function diffAndPatch(descriptor) {
         })
       })
     } else {
-      const previousDescriptor = (<any> anchor).previousDescriptor
-      const out = O.of(patch(diffMap, previousDescriptor, descriptor))
-      ;(<any> anchor).previousDescriptor = descriptor
-      return out
+      let processing = (<any> anchor).diffMapProcessing
+      if (!processing) {
+        ;(<any> anchor).diffMapProcessing = true
+        const previousDescriptor = (<any> anchor).previousDescriptor
+        const out = O.of(patch(diffMap, previousDescriptor, descriptor))
+        ;(<any> anchor).previousDescriptor = descriptor
+        ;(<any> anchor).diffMapProcessing = false
+
+        const queued = (<any> anchor).descriptorQueue
+        if (queued && Array.isArray(queued) && queued.length) {
+          const d = queued.shift()
+          return diffAndPatch(d)
+        }
+
+        return out
+      } else {
+        const queued = (<any> anchor).descriptorQueue
+        if (queued && Array.isArray(queued)) {
+          queued.push(descriptor)
+        } else {
+          ;(<any> anchor).descriptorQueue = [descriptor]
+        }
+
+        return O.never()
+      }
     }
   }
 }
