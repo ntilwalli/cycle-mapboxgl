@@ -1,6 +1,6 @@
 {
   "name": "cycle-mapboxgl",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "CycleJS driver for Mapbox GL using jsondiffpatch",
   "jsnext:main": "./lib/es6/main.js",
   "main": "./lib/cjs/main.js",
@@ -32,23 +32,23 @@
     "@cycle/rxjs-adapter": "^3.0.3",
     "jsondiffpatch": "^0.2.4",
     "mapbox-gl": "^0.25.1",
-    "rxjs": "^5.0.0-beta.12"
+    "rxjs": "^5.0.0-rc.2",
+    "xstream": "^7.0.0"
   },
   "devDependencies": {
-    "@cycle/dom": "^12.2.5",
+    "@cycle/dom": "^14.0.0",
     "@cycle/rxjs-run": "^3.0.3",
     "@types/chai": "^3.4.34",
     "@types/core-js": "^0.9.34",
     "@types/mocha": "^2.2.32",
     "chai": "^3.5.0",
     "mocha": "^3.1.0",
-    "rollup-plugin-commonjs": "file:///Users/ntilwalli/dev/spotlight/custom_deps/rollup-plugin-commonjs",
+    "rollup-plugin-commonjs-iife-fix": "^5.0.4",
     "rollup-plugin-json": "^2.0.2",
     "rollup-plugin-node-builtins": "^1.2.1",
     "rollup-plugin-node-globals": "^1.0.9",
     "rollup-plugin-node-resolve": "^2.0.0",
     "rollup-plugin-typescript": "^0.8.1",
-    "typescript": "^2.1.0-dev.20161005",
-    "xstream": "*"
+    "typescript": "^2.1.0-dev.20161005"
   }
 }
