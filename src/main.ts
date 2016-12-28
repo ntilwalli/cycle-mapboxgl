@@ -241,6 +241,11 @@ function diffAndPatch(descriptor) {
             diffMap.setCenter(newCenter)
           }
 
+          if (options && options.hasOwnProperty('scrollZoom')) {
+            if (!options.scrollZoom) {
+              diffMap.scrollZoom.disable()
+            }
+          }
 
           ;(<any> anchor).diffMap = diffMap
           ;(<any> anchor).previousDescriptor = descriptor

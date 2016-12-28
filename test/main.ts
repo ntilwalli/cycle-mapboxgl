@@ -75,7 +75,8 @@ function main(sources) {
       }
     },
     options: {
-      offset: [100, 100]
+      offset: [100, 100],
+      scrollZoom: false
     }
   }
 
