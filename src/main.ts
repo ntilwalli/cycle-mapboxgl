@@ -247,6 +247,13 @@ function diffAndPatch(descriptor) {
             }
           }
 
+          if (map && map.hasOwnProperty('dragPan')) {
+            if (!map.dragPan) {
+              diffMap.dragPan.disable()
+            }
+          }
+
+
           ;(<any> anchor).diffMap = diffMap
           ;(<any> anchor).previousDescriptor = descriptor
           observer.next(descriptor)

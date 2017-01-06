@@ -1,6 +1,6 @@
 {
   "name": "cycle-mapboxgl",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "CycleJS driver for Mapbox GL using jsondiffpatch",
   "jsnext:main": "./lib/es6/main.js",
   "main": "./lib/cjs/main.js",
