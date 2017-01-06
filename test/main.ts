@@ -65,7 +65,8 @@ function main(sources) {
       style: `mapbox://styles/mapbox/bright-v9`, //stylesheet location
       center: [-74.50, 40], // starting position
       zoom: 9, // starting zoom,
-      dragPan: true
+      dragPan: true,
+      scrollZoom: false
     },
     sources: mapSources,
     layers,
@@ -75,8 +76,7 @@ function main(sources) {
       }
     },
     options: {
-      offset: [100, 100],
-      scrollZoom: false
+      offset: [100, 100]
     }
   }
 
